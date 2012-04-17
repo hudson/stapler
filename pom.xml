@@ -8,10 +8,10 @@
         <relativePath /> <!-- avoid cycle -->
     </parent>
     
-  <groupId>org.kohsuke.stapler</groupId>
+  <groupId>org.hudsonci.stapler</groupId>
   <artifactId>stapler-parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.168-SNAPSHOT</version>
+  <version>3.0.1-SNAPSHOT</version>
 
   <name>Stapler</name>
   <description>Stapler HTTP request handling engine</description>

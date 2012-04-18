@@ -7,7 +7,7 @@
   </parent>
   
   <artifactId>stapler-jelly</artifactId>
-  <name>Stapler Jelly module</name>
+  <name>Stapler Jelly</name>
   <description>Jelly binding for Stapler</description>
   
   <dependencies>

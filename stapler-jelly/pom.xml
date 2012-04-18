@@ -13,7 +13,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>stapler</artifactId>
+      <artifactId>stapler-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -54,7 +54,7 @@
     <!-- test dependencies -->
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>stapler</artifactId>
+      <artifactId>stapler-core</artifactId>
       <version>${project.version}</version>
       <classifier>tests</classifier>
       <scope>test</scope>

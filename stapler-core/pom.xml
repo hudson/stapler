@@ -6,7 +6,7 @@
     <version>3.0.1-SNAPSHOT</version>
   </parent>
   
-  <artifactId>stapler</artifactId>
+  <artifactId>stapler-core</artifactId>
   <name>Stapler Core</name>
   <description>Stapler HTTP request handling engine</description>
 

@@ -23,8 +23,8 @@
     </scm>
   
   <modules>
-    <module>core</module>
-    <module>jelly</module>
+    <module>stapler-core</module>
+    <module>stapler-jelly</module>
   </modules>
 
   <organization>

@@ -133,93 +133,90 @@ public class InternationalizedStringExpression extends ExpressionSupport {
         return expressionText;
     }
 
-    public Object evaluate(JellyContext context) {
-        return format(evaluateArguments(context));
+    public Object evaluate(JellyContext jellyContext) {
+        return format(evaluateArguments(jellyContext));
     }
 
-    private Object format(Object[] args) {
-        // notify the listener if set
-        InternationalizedStringExpressionListener listener = (InternationalizedStringExpressionListener) Stapler.getCurrentRequest().getAttribute(LISTENER_NAME);
-        if(listener!=null)
-            listener.onUsed(this, args);
-
-        return resourceBundle.format(LocaleProvider.getLocale(), key, args);
-    }
-
-    private Object[] evaluateArguments(JellyContext jellyContext) {
+    Object[] evaluateArguments(JellyContext jellyContext) {
         Object[] args = new Object[arguments.length];
         for (int i = 0; i < args.length; i++)
             args[i] = arguments[i].evaluate(jellyContext);
         return args;
     }
 
-    /**
-     * Creates a new {@link Expression} that performs proper HTML escaping.
-     */
-    public Expression makeEscapingExpression() {
-        return new ExpressionSupport() {
-            public String getExpressionText() {
-                return expressionText;
-            }
+    String format(Object[] args) {
+        // notify the listener if set
+        InternationalizedStringExpressionListener listener = (InternationalizedStringExpressionListener)Stapler.getCurrentRequest().getAttribute(LISTENER_NAME);
+        if(listener!=null)
+            listener.onUsed(this,args);
 
-            public Object evaluate(JellyContext context) {
-                Object[] args = evaluateArguments(context);
-                for (int i=0; i<args.length; i++) {
-                    if (args[i] instanceof RawHtmlArgument)
-                        args[i] = ((RawHtmlArgument)args[i]).value;
-                    else
-                    if (args[i] instanceof Number || args[i] instanceof Calendar || args[i] instanceof Date)
-                        ;   // formatting numbers and date often requires that they be kept intact
-                    else
-                        args[i] = args[i]==null ? null : escape(args[i].toString());
-                }
-                return format(args);
-            }
-
-            private String escape(String text) {
-                int len = text.length();
-                StringBuilder buf = new StringBuilder(len);
-                boolean escaped = false;
-
-                for (int i=0; i< len; i++) {
-                    char ch = text.charAt(i);
-                    switch (ch) {
-                        case '<':
-                            buf.append("&lt;");
-                            escaped = true;
-                            continue;
-                        case '&':
-                            buf.append("&amp;");
-                            escaped = true;
-                            continue;
-                        default:
-                            buf.append(ch);
-                    }
-                }
-
-                if (!escaped)   return text;    // nothing to escape. no need to create a new string
-
-                return buf.toString();
-
-            }
-        };
+        return resourceBundle.format(LocaleProvider.getLocale(),key,args);
     }
 
     /**
-     * Argument to {@link InternationalizedStringExpression} that indicates this value is raw HTML
-     * and therefore should not be further escaped.
+     * Wraps value to indicate it contains raw HTML that should not be escaped.
      */
-    public static final class RawHtmlArgument {
-        private final Object value;
+    public static Object rawHtml(Object value) {
+        return value != null ? new RawHtml(value) : null;
+    }
 
-        public RawHtmlArgument(Object value) {
+    static final class RawHtml {
+        final Object value;
+ 
+        RawHtml(Object value) {
             this.value = value;
         }
 
         @Override
         public String toString() {
-            return value==null?"null":value.toString();
+            return String.valueOf(value);
         }
+    }
+    
+    Expression escape() {
+        return new ExpressionSupport() {
+            public String getExpressionText() {
+                return expressionText;
+            }
+    
+            public Object evaluate(JellyContext context) {
+                Object[] args = evaluateArguments(context);
+                for (int i = 0; i < args.length; i++) {
+                    args[i] = escapeArgument(args[i]);
+                }
+                return format(args);
+            }
+        };
+    }
+
+    static Object escapeArgument(Object arg) {
+        if (arg instanceof RawHtml) {
+            return ((RawHtml)arg).value; // no escaping wanted
+        }
+        if ( arg == null || arg instanceof Number || arg instanceof Date || arg instanceof Calendar ) {
+            return arg; // no escaping required
+        }
+        final String text = arg.toString();
+        StringBuilder buf = null; // create on-demand
+        for (int i = 0, len = text.length(); i < len; i++) {
+            final char c = text.charAt(i);
+            String replacement = null;
+            if (c == '&') {
+                replacement = "&amp;";
+            } else if (c == '<') {
+                replacement = "&lt;";
+            } else if (buf != null) {
+                buf.append(c); // maintain buffer
+            }
+            if (replacement != null) {
+                if (buf == null) {
+                    // only create translation buffer when we actually need it
+                    buf = new StringBuilder(len+8).append(text.substring(0, i));
+                }
+                buf.append(replacement);
+            }
+        }
+        return buf != null ? buf : text;
     }
 
     private static final Expression[] EMPTY_ARGUMENTS = new Expression[0];

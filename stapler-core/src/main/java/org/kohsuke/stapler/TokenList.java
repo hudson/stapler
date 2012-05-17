@@ -40,12 +40,16 @@ public final class TokenList {
     public int idx;
 
     TokenList(String url) {
-        StringTokenizer tknzr = new StringTokenizer(url,"/");
+        StringTokenizer tknzr = new StringTokenizer(url, "/\\");
         tokens = new String[tknzr.countTokens()];
         rawTokens = new String[tknzr.countTokens()];
-        for(int i=0; tknzr.hasMoreTokens(); i++) {
+        for (int i = 0; tknzr.hasMoreTokens(); i++) {
             rawTokens[i] = tknzr.nextToken();
             tokens[i] = decode(rawTokens[i]);
+            // Do not allow directory traversal
+            if (tokens[i].equals("..")) {
+                throw new IllegalArgumentException(url);
+            }
         }
     }
 
